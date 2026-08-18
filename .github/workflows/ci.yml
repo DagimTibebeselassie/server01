@@ -1,0 +1,24 @@
+name: server01 healthcheck
+
+on:
+  push:
+    branches:
+      - main
+
+
+jobs:
+  checkFetch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repo to runner
+        uses: actions/checkout@v4
+
+      - name: build image
+        run: docker build -t server01 .
+
+      - name: run container
+        run: docker run -d -p 4000:4000 server01
+
+      - name: run node execute
+        run: node -e 'fetch("http://localhost:4000/health").then(r => {if (!r.ok) process.exit(1)}).catch(() => {process.exit(1)})'
