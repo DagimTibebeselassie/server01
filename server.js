@@ -26,6 +26,39 @@ const server = http.createServer(async (req, res) => {
 		}
 	}
 
+	if (req.url === "/cars" && req.method === "POST") {
+		let body = "";
+
+		req.on("data", (chunk) => {
+			body += chunk;
+		});
+
+		req.on("end", async () => {
+			const car = JSON.parse(body);
+
+			if (car.make === undefined || car.model === undefined || car.year === undefined) {
+				res.writeHead(400, {"Content-Type":"application/json"});
+				res.end(JSON.stringify({"invalid request":"must include mode year and make"}));
+				return;
+			}
+
+			try {
+				const dres = await pool.query(
+					"INSERT INTO vehicles (make, model, year) VALUES ($1, $2, $3) RETURNING *",
+					[car.make, car.model, car.year]
+				);
+				res.writeHead(201, {"Content-Type":"application/json"});
+				res.end(JSON.stringify(dres));
+				return;
+			} catch (err) {
+				res.writeHead(500, {"Content-Type":"application.json"});
+				res.end(JSON.stringify({"error":err}));
+				return;
+			}
+		});
+		return;
+	}
+
 	if (req.url === "/health" && req.method === "GET") {
 		res.writeHead(200, {"Content-Type":"application/json"});
 		res.end(JSON.stringify({"status":"ok"}));
