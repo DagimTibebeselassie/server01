@@ -10,6 +10,8 @@ COPY --chown=node:node . .
 
 USER node
 
+EXPOSE 4100
+
 HEALTHCHECK --interval=10s --timeout=2s --retries=3 \
 CMD node -e "fetch('http://localhost:4100/health').then(r => {if (!r.ok) process.exit(1)}).catch(() => process.exit(1))"
 
